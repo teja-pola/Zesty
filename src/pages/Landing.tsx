@@ -85,6 +85,7 @@ export function Landing() {
   ];
 
   const [showVideo, setShowVideo] = useState(false);
+  const [videoPlayed, setVideoPlayed] = useState(false);
 
 const divConfig = [
   
@@ -183,31 +184,42 @@ const divConfig = [
               
               <button 
                 className="group flex items-center space-x-3 text-white/80 hover:text-white transition-colors"
-                onClick={() => setShowVideo(true)}
-                >
+                onClick={() => { setShowVideo(true); setVideoPlayed(true); }}
+              >
                 <div className="bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors">
                   <Play className="w-6 h-6" />
                 </div>
                 <span>See How It Works</span>
               </button>
             </div>
-            {showVideo && (
-              <div className="mb-16 flex justify-center">
-                <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/5QOY6OIpbMQ?autoplay=1"
-                    title="How Zesty Works"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    className="w-full h-full object-cover"
-                    style={{ display: 'block' }}
-                  ></iframe>
-                </div>
+            {/* Embedded YouTube Video (shows on click) */}
+            <div className="mt-8 flex justify-center min-h-[400px]">
+              <div className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/5QOY6OIpbMQ${videoPlayed ? '?autoplay=1&rel=0&modestbranding=1&controls=1' : '?rel=0&modestbranding=1&controls=1'}`}
+                  title="How Zesty Works"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full object-cover"
+                  style={{ display: 'block' }}
+                ></iframe>
+                {!videoPlayed && (
+                  <button
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition-colors cursor-pointer z-10"
+                    aria-label="Play video"
+                    onClick={() => { setShowVideo(true); setVideoPlayed(true); }}
+                    tabIndex={0}
+                  >
+                    <div className="bg-white/20 p-6 rounded-full flex items-center justify-center shadow-lg">
+                      <Play className="w-16 h-16 text-white drop-shadow-lg" />
+                    </div>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </motion.div>
         </div>
 
@@ -254,7 +266,7 @@ const divConfig = [
       </section>
 
       {/* Cultural Domains Showcase */}
-      <section className={`py-16 px-4${showVideo ? ' mt-16' : ''}`}> 
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

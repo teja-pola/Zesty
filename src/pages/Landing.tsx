@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -84,6 +84,7 @@ export function Landing() {
     }
   ];
 
+  const [showVideo, setShowVideo] = useState(false);
 
 const divConfig = [
   
@@ -180,26 +181,32 @@ const divConfig = [
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
-              <button className="group flex items-center space-x-3 text-white/80 hover:text-white transition-colors">
+              <button 
+                className="group flex items-center space-x-3 text-white/80 hover:text-white transition-colors"
+                onClick={() => setShowVideo(true)}
+                >
                 <div className="bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors">
                   <Play className="w-6 h-6" />
                 </div>
                 <span>See How It Works</span>
               </button>
             </div>
-            {/* Embedded YouTube Video */}
-            <div className="mt-8 flex justify-center">
-              <div className="w-full max-w-2xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src="https://www.youtube.com/embed/5QOY6OIpbMQ?si=zJglNXW8WRZbfRzr"
-                  title="How Zesty Works"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="w-full h-full"
-                ></iframe>
+            {/* Embedded YouTube Video (shows on click) */}
+            <div className="mt-8 flex justify-center min-h-[400px]">
+              <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg" style={{ visibility: showVideo ? 'visible' : 'hidden' }}>
+                {showVideo && (
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/5QOY6OIpbMQ?autoplay=1"
+                    title="How Zesty Works"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full object-cover"
+                    style={{ display: 'block' }}
+                  ></iframe>
+                )}
               </div>
             </div>
           </motion.div>

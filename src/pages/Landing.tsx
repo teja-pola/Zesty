@@ -191,10 +191,9 @@ const divConfig = [
                 <span>See How It Works</span>
               </button>
             </div>
-            {/* Embedded YouTube Video (shows on click) */}
-            <div className="mt-8 flex justify-center min-h-[400px]">
-              <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg" style={{ visibility: showVideo ? 'visible' : 'hidden' }}>
-                {showVideo && (
+            {showVideo && (
+              <div className="mb-16 flex justify-center">
+                <div className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg">
                   <iframe
                     width="100%"
                     height="100%"
@@ -206,9 +205,9 @@ const divConfig = [
                     className="w-full h-full object-cover"
                     style={{ display: 'block' }}
                   ></iframe>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         </div>
 
@@ -255,7 +254,7 @@ const divConfig = [
       </section>
 
       {/* Cultural Domains Showcase */}
-      <section className="py-16 px-4">
+      <section className={`py-16 px-4${showVideo ? ' mt-16' : ''}`}> 
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

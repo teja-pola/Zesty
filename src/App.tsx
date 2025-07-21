@@ -14,6 +14,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Curriculum } from './pages/Curriculum';
 import { Challenges } from './pages/Challenges';
 import { Progress } from './pages/Progress';
+import About from './pages/About';
+import Features from './pages/Features';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/features" element={<Features />} />
               <Route path="/onboarding" element={
                 <ProtectedRoute>
                   <Onboarding />

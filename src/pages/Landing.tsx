@@ -84,6 +84,69 @@ export function Landing() {
     }
   ];
 
+  // Define a complete configuration for each div
+const divConfig = [
+  // --- Div 0 ---
+  {
+    position:  { top: '7%', left: '20%' },
+    size: { scale: 1.0 },
+    animation: {
+      y: [-15, 15, -15],
+      rotate: [-5, 5, -5],
+      transition: { duration: 7, ease: "easeInOut", repeat: Infinity }
+    }
+  },
+  // --- Div 1 ---
+  {
+    position: { top: '-1%', left: '45%' },
+    size: { scale: 0.5 }, // Smaller size
+    animation: {
+      y: [20, -20, 20], // Different vertical movement
+      rotate: [3, -3, 3],
+      transition: { duration: 8, ease: "linear", repeat: Infinity }
+    }
+  },
+  // --- Div 2 ---
+  {
+    position: { top: '9%', left: '75%' },   
+    size: { scale: 0.8 }, // Larger size
+    animation: {
+      y: [-10, 10, -10],
+      x: [-10, 10, -10], // Adds horizontal movement
+      rotate: [7, -7, 7],
+      transition: { duration: 6.5, ease: "easeInOut", repeat: Infinity }
+    }
+  },
+  // --- Div 3 ---
+  {
+    position:  { top: '55%', left: '15%' }, 
+    size: { scale: 0.9 }, // Smaller size
+    animation: {
+      y: [12, -12, 12],
+      rotate: [-8, 8, -8], // Larger rotation
+      transition: { duration: 9, ease: "linear", repeat: Infinity, delay: 0.2 }
+    }
+  },
+  // --- Div 4 ---
+  {
+    position: { top: '55%', left: '75%' },   
+    size: { scale: 1.05 },
+    animation: {
+      y: [-25, 25, -25], // Larger vertical movement
+      rotate: [0, 0, 0], // No rotation
+      transition: { duration: 7.5, ease: "easeInOut", repeat: Infinity }
+    }
+  }
+]as const;
+  const divPositions = [
+  { top: '7%', left: '20%' },    
+  { top: '-1%', left: '45%' },   
+  { top: '9%', left: '75%' },    
+  { top: '55%', left: '15%' },  
+  { top: '55%', left: '75%' },   
+];
+
+
   return (
     <div className="relative overflow-hidden">
       {/* Subtle Grid Background */}
@@ -138,24 +201,25 @@ export function Landing() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {culturalDomains.map((domain, index) => {
             const Icon = domain.icon;
+            const config = divConfig[index];
             return (
               <motion.div
-                key={domain.name}
-                className="absolute"
-                style={{
-                  left: `${10 + (index * 18)}%`,
-                  top: `${15 + (index % 2) * 50}%`,
-                }}
-                animate={{
-                  y: [-20, 20, -20],
-                  rotate: [-5, 5, -5],
-                }}
-                transition={{
-                  duration: 6 + index,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
+              key={domain.name}
+  className="absolute"
+  style={{
+    top: config.position.top,
+    left: config.position.left,
+    scale: config.size.scale,
+  }}
+  animate={{
+    // Create mutable copies using the spread operator
+    y: [...config.animation.y],
+    rotate: [...config.animation.rotate],
+    
+    x: 'x' in config.animation ? [...config.animation.x] : 0,
+  }}
+  transition={config.animation.transition}
+>
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 w-32 h-32 flex flex-col items-center justify-center">
                   <Icon className={`w-8 h-8 ${domain.color} mb-2`} />
                   <span className="text-white text-sm font-medium text-center">{domain.name}</span>

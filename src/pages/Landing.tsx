@@ -193,7 +193,7 @@ const divConfig = [
                 <iframe
                   width="100%"
                   height="100%"
-                  src="https://youtu.be/5QOY6OIpbMQ?si=4QgVTMruPHS-fqOM"
+                  src="https://www.youtube.com/embed/5QOY6OIpbMQ?si=zJglNXW8WRZbfRzr"
                   title="How Zesty Works"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

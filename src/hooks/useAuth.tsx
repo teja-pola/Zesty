@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  refreshAuth: () => Promise<void>; // Add refreshAuth to the interface
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,15 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    setLoading(true);
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -44,6 +37,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // Get initial session (triggers INITIAL_SESSION event)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        setUser(session.user);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -56,7 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        if (error.code === 'PGRST116') {
+          setProfile(null);
+        } else {
+          console.error('Error fetching profile:', error);
+        }
       } else {
         setProfile(data);
       }
@@ -79,24 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) throw error;
-
-    // Create profile
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: fullName,
-          cultural_exposure_score: 0,
-          discomfort_level: 1,
-          domains_unlocked: [],
-        });
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-      }
-    }
+    // No need to insert profile here; handled by DB trigger
   };
 
   const signIn = async (email: string, password: string) => {
@@ -109,16 +101,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-      setProfile(null);
+      // Clear all localStorage and sessionStorage to ensure clean state
+      localStorage.clear();
+      sessionStorage.clear();
+      console.log('Cleared localStorage and sessionStorage before signOut');
+      await supabase.auth.signOut();
+      console.log('After supabase signOut');
+      // Reload the page to reset app state and UI
+      window.location.reload();
     } catch (error) {
-      console.error('Sign out error:', error);
-      // Force clear local state even if API call fails
-      setUser(null);
+      // Clear all localStorage and sessionStorage even if signOut fails
+      localStorage.clear();
+      sessionStorage.clear();
+      console.error('Error during signOut:', error);
+      // Reload the page anyway
+      window.location.reload();
+    }
+  };
+
+  // Utility to force context refresh (can be used if needed)
+  const refreshAuth = async () => {
+    setLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    setUser(session?.user ?? null);
+    if (session?.user) {
+      await fetchProfile(session.user.id);
+    } else {
       setProfile(null);
     }
+    setLoading(false);
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
@@ -143,6 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     updateProfile,
+    refreshAuth, // Expose refresh utility
   };
 
   return (

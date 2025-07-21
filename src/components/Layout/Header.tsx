@@ -8,15 +8,26 @@ import toast from 'react-hot-toast';
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  console.log('Header: signOut function:', signOut);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Debug log for user state
+  console.log('Header render, user:', user);
+
+  React.useEffect(() => {
+    console.log('Header user state changed:', user);
+  }, [user]);
+
   const handleSignOut = async () => {
+    console.log('Sign out button clicked: handleSignOut called');
     try {
       await signOut();
       setIsMenuOpen(false); // Close mobile menu
-      navigate('/');
       toast.success('Signed out successfully');
+      console.log('Before window.location.reload()');
+      window.location.reload();
+      console.log('After window.location.reload()');
     } catch (error) {
       console.error('Sign out error:', error);
       toast.error('Error signing out');
@@ -74,7 +85,7 @@ export function Header() {
                   Progress
                 </Link>
                 <button
-                  onClick={handleSignOut}
+                  onClick={(e) => { console.log('Sign out button onClick fired'); handleSignOut(); }}
                   className="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-xl transition-colors"
                 >
                   <LogOut className="w-4 h-4 text-red-400" />
@@ -149,7 +160,7 @@ export function Header() {
                     Progress
                   </Link>
                   <button
-                    onClick={handleSignOut}
+                    onClick={(e) => { console.log('Sign out button onClick fired'); handleSignOut(); }}
                     className="text-red-400 hover:text-red-300 transition-colors py-2 text-left"
                   >
                     Sign Out

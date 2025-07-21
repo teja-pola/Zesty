@@ -26,11 +26,11 @@ export function Auth() {
       if (isLogin) {
         await signIn(formData.email, formData.password);
         toast.success('Welcome back!');
-        navigate('/dashboard');
+        navigate('/'); // Redirect to landing page after sign in
       } else {
         await signUp(formData.email, formData.password, formData.fullName);
         toast.success('Account created! Welcome to Zesty!');
-        navigate('/onboarding');
+        navigate('/'); // Redirect to landing page after sign up
       }
     } catch (error: any) {
       toast.error(error.message || 'Authentication failed');

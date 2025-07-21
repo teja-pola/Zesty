@@ -220,7 +220,18 @@ const divConfig = [
   }}
   transition={config.animation.transition}
 >
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 w-32 h-32 flex flex-col items-center justify-center">
+<div 
+    className="
+      relative 
+      flex flex-col items-center justify-center 
+      w-32 h-32 p-6 
+      rounded-full 
+      border border-white/10 
+      shadow-lg shadow-black/20 
+      backdrop-blur-xl 
+      bg-[radial-gradient(circle_at_25%_25%,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.05)_50%)]
+    "
+  >
                   <Icon className={`w-8 h-8 ${domain.color} mb-2`} />
                   <span className="text-white text-sm font-medium text-center">{domain.name}</span>
                 </div>

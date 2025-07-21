@@ -84,9 +84,9 @@ export function Landing() {
     }
   ];
 
-  // Define a complete configuration for each div
+
 const divConfig = [
-  // --- Div 0 ---
+  
   {
     position:  { top: '7%', left: '20%' },
     size: { scale: 1.0 },
@@ -96,56 +96,49 @@ const divConfig = [
       transition: { duration: 7, ease: "easeInOut", repeat: Infinity }
     }
   },
-  // --- Div 1 ---
+  
   {
     position: { top: '-1%', left: '45%' },
-    size: { scale: 0.5 }, // Smaller size
+    size: { scale: 0.5 }, 
     animation: {
-      y: [20, -20, 20], // Different vertical movement
+      y: [20, -20, 20], 
       rotate: [3, -3, 3],
       transition: { duration: 8, ease: "linear", repeat: Infinity }
     }
   },
-  // --- Div 2 ---
+  
   {
     position: { top: '9%', left: '75%' },   
-    size: { scale: 0.8 }, // Larger size
+    size: { scale: 0.8 }, 
     animation: {
       y: [-10, 10, -10],
-      x: [-10, 10, -10], // Adds horizontal movement
+      x: [-10, 10, -10], 
       rotate: [7, -7, 7],
       transition: { duration: 6.5, ease: "easeInOut", repeat: Infinity }
     }
   },
-  // --- Div 3 ---
+  
   {
-    position:  { top: '55%', left: '15%' }, 
-    size: { scale: 0.9 }, // Smaller size
+    position:  { top: '47%', left: '15%' }, 
+    size: { scale: 0.9 }, 
     animation: {
       y: [12, -12, 12],
-      rotate: [-8, 8, -8], // Larger rotation
+      rotate: [-8, 8, -8], 
       transition: { duration: 9, ease: "linear", repeat: Infinity, delay: 0.2 }
     }
   },
-  // --- Div 4 ---
+  
   {
-    position: { top: '55%', left: '75%' },   
+    position: { top: '45%', left: '75%' },   
     size: { scale: 1.05 },
     animation: {
-      y: [-25, 25, -25], // Larger vertical movement
-      rotate: [0, 0, 0], // No rotation
+      y: [-25, 25, -25], 
+      rotate: [0, 0, 0], 
       transition: { duration: 7.5, ease: "easeInOut", repeat: Infinity }
     }
   }
 ]as const;
-  const divPositions = [
-  { top: '7%', left: '20%' },    
-  { top: '-1%', left: '45%' },   
-  { top: '9%', left: '75%' },    
-  { top: '55%', left: '15%' },  
-  { top: '55%', left: '75%' },   
-];
-
+ 
 
   return (
     <div className="relative overflow-hidden">
@@ -161,7 +154,7 @@ const divConfig = [
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3">
+            <div className="inline-flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 mt-32">
               <Sparkles className="w-5 h-5 text-blue-400" />
               <span className="text-white/80 text-sm">The Unrecommendation Engine</span>
             </div>
@@ -194,6 +187,21 @@ const divConfig = [
                 <span>See How It Works</span>
               </button>
             </div>
+            {/* Embedded YouTube Video */}
+            <div className="mt-8 flex justify-center">
+              <div className="w-full max-w-2xl aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="How Zesty Works"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              </div>
+            </div>
           </motion.div>
         </div>
 
@@ -205,44 +213,42 @@ const divConfig = [
             return (
               <motion.div
               key={domain.name}
-  className="absolute"
-  style={{
-    top: config.position.top,
-    left: config.position.left,
-    scale: config.size.scale,
-  }}
-  animate={{
-    // Create mutable copies using the spread operator
-    y: [...config.animation.y],
-    rotate: [...config.animation.rotate],
-    
-    x: 'x' in config.animation ? [...config.animation.x] : 0,
-  }}
-  transition={config.animation.transition}
->
-<div 
-    className="
-      relative 
-      flex flex-col items-center justify-center 
-      w-32 h-32 p-6 
-      rounded-full 
-      border border-white/10 
-      shadow-lg shadow-black/20 
-      backdrop-blur-xl 
-      bg-[radial-gradient(circle_at_25%_25%,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.05)_50%)]
-    "
-  >
-                  <Icon className={`w-8 h-8 ${domain.color} mb-2`} />
-                  <span className="text-white text-sm font-medium text-center">{domain.name}</span>
-                </div>
-              </motion.div>
+              className="absolute"
+              style={{
+                top: config.position.top,
+                left: config.position.left,
+                scale: config.size.scale,
+            }}
+            animate={{
+              y: [...config.animation.y],
+              rotate: [...config.animation.rotate],
+              x: 'x' in config.animation ? [...config.animation.x] : 0,
+          }}
+          transition={config.animation.transition}
+    >
+        <div 
+          className="
+        relative 
+        flex flex-col items-center justify-center 
+        w-32 h-32 p-6 
+        rounded-full 
+        border border-white/10 
+        shadow-lg shadow-black/20 
+        backdrop-blur-xl 
+        bg-[radial-gradient(circle_at_25%_25%,_rgba(255,255,255,0.3)_0%,_rgba(255,255,255,0.05)_50%)]
+      "
+      >
+          <Icon className={`w-8 h-8 ${domain.color} mb-2`} />
+              <span className="text-white text-sm font-medium text-center">{domain.name}</span>
+            </div>
+          </motion.div>
             );
           })}
         </div>
       </section>
 
       {/* Cultural Domains Showcase */}
-      <section className="py-32 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -291,7 +297,7 @@ const divConfig = [
       </section>
 
       {/* How It Works Section */}
-      <section className="py-32 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -335,7 +341,7 @@ const divConfig = [
       </section>
 
       {/* Process Flow */}
-      <section className="py-32 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -460,7 +466,7 @@ const divConfig = [
       </section>
 
       {/* Social Proof */}
-      <section className="py-32 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -491,7 +497,7 @@ const divConfig = [
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

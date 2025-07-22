@@ -140,7 +140,21 @@ const divConfig = [
     }
   }
 ]as const;
- 
+
+
+const flareLines = [
+  { rotate: -60, delay: 0.1, duration: 0.6, color: 'bg-cyan-300' },
+  { rotate: -20, delay: 0.3, duration: 0.8, color: 'bg-fuchsia-400' },
+  { rotate: 10, delay: 0.0, duration: 0.7, color: 'bg-white' },
+  { rotate: 50, delay: 0.2, duration: 0.9, color: 'bg-fuchsia-400' },
+  { rotate: 80, delay: 0.4, duration: 0.6, color: 'bg-cyan-300' },
+];
+
+const stars = [
+  { top: '10%', left: '15%', delay: 0.5, duration: 2 },
+  { top: '80%', left: '25%', delay: 1.5, duration: 3 },
+  { top: '25%', left: '85%', delay: 1, duration: 2.5 },
+];
 
   return (
     <div className="relative overflow-hidden">
@@ -156,11 +170,69 @@ const divConfig = [
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 mt-32">
-              <Sparkles className="w-5 h-5 text-blue-400" />
-              <span className="text-white/80 text-sm">The Unrecommendation Engine</span>
-            </div>
-            
+<div className="relative inline-flex items-center justify-center mt-32 group w-80 h-24">
+      
+      {/* Background Nebula Glow */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-1/2 left-1/2 w-48 h-48 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-tr from-indigo-600/30 to-fuchsia-500/30 rounded-full blur-3xl animate-pulse" />
+      </div>
+
+      {/* Twinkling Stars */}
+      {stars.map((star, index) => (
+        <motion.div
+          key={`star-${index}`}
+          className="absolute w-1 h-1 bg-white rounded-full"
+          style={{ top: star.top, left: star.left }}
+          animate={{
+            opacity: [0, 1, 0],
+            scale: [0.5, 1.2, 0.5],
+          }}
+          transition={{
+            duration: star.duration,
+            repeat: Infinity,
+            repeatType: 'reverse',
+            delay: star.delay,
+          }}
+        />
+      ))}
+
+      {/* Light Flares / Burst Effect */}
+      {flareLines.map((line, index) => (
+        <motion.div
+          key={`flare-${index}`}
+          className="absolute h-[1px] w-32 origin-center"
+          style={{ 
+            background: `linear-gradient(to right, transparent, ${line.color}, transparent)`,
+            rotate: `${line.rotate}deg`,
+          }}
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ 
+            scaleX: [0, 1, 0], 
+            opacity: [0, 0.6, 0] 
+          }}
+          transition={{ 
+            duration: line.duration,
+            ease: "easeOut",
+            delay: line.delay,
+            repeat: Infinity,
+            repeatDelay: 4
+          }}
+        />
+      ))}
+      
+      {/* Content (on top) */}
+      <div className="relative z-10 flex items-center space-x-3">
+        <Sparkles className="w-5 h-5 text-cyan-300" />
+        <span className="
+          text-lg font-semibold text-white 
+          tracking-wide
+          [text-shadow:0_0_10px_rgba(255,255,255,0.6)]
+        ">
+          The Unrecommendation Engine
+        </span>
+      </div>
+
+    </div>
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
               Break Your
               <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">

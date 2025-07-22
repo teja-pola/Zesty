@@ -1,223 +1,264 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, Map, Target, BarChart3, CheckCircle, Star, Award, Sparkles, UserCheck, Zap, Eye, PieChart, Activity, Users, Compass } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
+import { TrendingUp, Map, Target, BarChart3, CheckCircle, Star, Compass, Eye, Zap, Activity, UserCheck, Sparkles, ArrowRight } from 'lucide-react';
 
+// --- DATA CONFIGURATION (with original color gradients) ---
 const features = [
   {
     icon: UserCheck,
     title: 'Personalized Onboarding',
-    description: 'Start your journey with a beautiful, animated onboarding flow that builds your unique taste profile across movies, music, food, books, and fashion.',
+    description: 'Start your journey with a beautiful, animated flow that builds your unique taste profile across our five core cultural domains.',
     details: [
       'Step-by-step animated onboarding',
       'Select preferences in each domain',
-      'Progress bar and interactive UI',
+      'Interactive UI with progress bar',
       'Profile tailored to your tastes',
     ],
-    color: 'from-blue-400 to-purple-500',
+    gradient: 'from-blue-400 to-purple-500',
+    shadow: 'shadow-purple-500/20',
+    glow: 'hover:border-purple-400',
   },
   {
     icon: Sparkles,
     title: 'AI-Powered Taste Analysis',
-    description: 'Advanced AI (Gemini) and cultural graph (Qloo) integrations analyze your preferences and generate personalized, discomfort-based recommendations.',
+    description: 'Our system analyzes your profile to find the edges of your comfort zone, generating personalized recommendations.',
     details: [
-      'Gemini AI for explanations and plans',
-      'Qloo for cross-domain recommendations',
-      'Smart challenge/task generation',
+      'Gemini AI for explanations',
+      'Qloo for cross-domain suggestions',
+      'Smart challenge generation',
       'Conversational, inspiring feedback',
     ],
-    color: 'from-purple-500 to-pink-500',
+    gradient: 'from-purple-500 to-pink-500',
+    shadow: 'shadow-pink-500/20',
+    glow: 'hover:border-pink-400',
   },
   {
     icon: TrendingUp,
     title: 'Dashboard',
-    description: 'Your cultural hub. Track your exposure score, completed challenges, and active domains. Instantly access your latest recommendations and see your growth at a glance.',
+    description: 'Your central hub to track metrics, view active challenges, and see your cultural exposure grow over time.',
     details: [
       'Exposure Score & Weekly Growth',
-      'Completed Challenges & Recommendations',
-      'Active Domains Overview',
+      'Completed Challenges Overview',
+      'Active Domains & Recommendations',
       'Quick Actions for New Challenges',
     ],
-    color: 'from-blue-500 to-purple-500',
+    gradient: 'from-sky-400 to-cyan-400',
+    shadow: 'shadow-cyan-500/20',
+    glow: 'hover:border-cyan-400',
   },
   {
     icon: Map,
     title: 'Curriculum',
-    description: 'Structured learning paths for every cultural domain. Each curriculum is tailored to your tastes and comfort level, guiding you step-by-step through new experiences.',
+    description: 'Follow structured learning paths for each domain, with tailored steps that guide you to new experiences.',
     details: [
       'Personalized, domain-specific paths',
-      'Progressive steps with increasing challenge',
+      'Progressive steps with increasing difficulty',
       'Track completion and revisit steps',
-      'AI-generated plans and recommendations',
+      'AI-generated learning plans',
     ],
-    color: 'from-green-400 to-blue-500',
+    gradient: 'from-green-400 to-emerald-500',
+    shadow: 'shadow-emerald-500/20',
+    glow: 'hover:border-emerald-400',
   },
   {
     icon: Target,
     title: 'Challenges',
-    description: 'Push your boundaries with curated cultural tasks. Challenges are generated based on your profile and preferences, and span movies, music, food, books, and fashion.',
+    description: 'Push your boundaries with curated cultural tasks generated based on your unique taste profile and preferences.',
     details: [
       'Domain-based challenge creation',
       'Difficulty levels from Gentle to Extreme',
-      'Completion tracking and proof upload',
-      'Earn awards for progress',
+      'Completion tracking & proof upload',
+      'Earn awards for your progress',
     ],
-    color: 'from-purple-500 to-pink-500',
+    gradient: 'from-amber-500 to-orange-500',
+    shadow: 'shadow-orange-500/20',
+    glow: 'hover:border-orange-400',
   },
   {
     icon: BarChart3,
     title: 'Progress & Analytics',
-    description: 'Visualize your journey with detailed analytics. See your growth over time, domain mastery, and completion rates with beautiful charts and stats.',
+    description: 'Visualize your journey with detailed analytics, domain mastery charts, and beautiful completion stats.',
     details: [
-      'Exposure score analytics',
+      'Exposure score analytics charts',
       'Domain progress breakdown',
       'Growth trends and completion rates',
       'Motivational stats and awards',
     ],
-    color: 'from-pink-500 to-orange-500',
+    gradient: 'from-rose-500 to-red-500',
+    shadow: 'shadow-red-500/20',
+    glow: 'hover:border-red-400',
   },
-  
 ];
 
 const processSteps = [
-  {
-    icon: Compass,
-    title: '1. Onboard',
-    text: 'Share your tastes in movies, music, food, books, and fashion through a playful, animated onboarding flow.'
-  },
-  {
-    icon: Eye,
-    title: '2. Analyze',
-    text: 'AI and cultural graph integrations analyze your profile to map your comfort zone and suggest new experiences.'
-  },
-  {
-    icon: Zap,
-    title: '3. Challenge',
-    text: 'Receive personalized, discomfort-based challenges and curriculum steps that push your boundaries.'
-  },
-  {
-    icon: Activity,
-    title: '4. Track & Grow',
-    text: 'Visualize your progress, unlock new domains, and celebrate your cultural growth with awards and analytics.'
-  },
+  { icon: Compass, title: '1. Onboard', text: 'Map your initial taste profile.' },
+  { icon: Eye, title: '2. Analyze', text: 'Our AI finds the edges of your comfort zone.' },
+  { icon: Zap, title: '3. Challenge', text: 'Receive personalized, boundary-pushing tasks.' },
+  { icon: Activity, title: '4. Grow', text: 'Track your progress and expand your horizons.' },
 ];
 
+
+// --- ANIMATION VARIANTS ---
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 120, damping: 15 },
+  },
+};
+
+
+// --- COMPONENT ---
 export default function Features() {
   return (
-    <div className="relative overflow-hidden">
-      {/* Subtle Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-5 pointer-events-none z-0"></div>
+    <div className="relative overflow-hidden bg-gray-900 text-white">
+      {/* Animated Aurora Background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-transparent">
+        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(192,132,252,0.15),rgba(255,255,255,0))]"></div>
+        <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(34,211,238,0.15),rgba(255,255,255,0))]"></div>
+      </div>
+
       {/* Hero Section */}
-      <section className="relative min-h-[40vh] flex items-center justify-center px-4 pt-24 pb-12 z-10">
+      <section className="relative min-h-[50vh] flex items-center justify-center px-4 pt-24 pb-16 z-10 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto text-center space-y-8"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="space-y-6"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="inline-flex items-center space-x-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3"
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-4 py-2"
           >
-            <Star className="w-5 h-5 text-yellow-400 animate-bounce" />
-            <span className="text-white/80 text-sm">Features</span>
+            <Star className="w-5 h-5 text-yellow-400" />
+            <span className="text-sm font-medium">Core Features</span>
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-5xl md:text-6xl font-bold text-white leading-tight"
+          <motion.h1 
+            variants={itemVariants}
+            className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400"
           >
-            Explore Zesty's Core Features
+            Explore Your Universe
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed"
+          <motion.p 
+            variants={itemVariants}
+            className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto"
           >
-            Everything you need to break your cultural comfort zone—personalized, gamified, and beautifully visualized.
+            A systematic approach to cultural growth. Discover how our features work together to expand your world.
           </motion.p>
         </motion.div>
       </section>
 
       {/* Process Flow Section */}
-      <section className="py-16 px-4">
-        <motion.div
+      <section className="py-24 px-4 relative z-10">
+        <motion.div 
+          className="max-w-5xl mx-auto relative"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: { opacity: 0, y: 40 },
-            visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.2 } },
-          }}
-          className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-center"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
         >
-          {processSteps.map((step, idx) => {
-            const Icon = step.icon;
-            return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            {processSteps.map((step) => (
               <motion.div
                 key={step.title}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col items-center hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                variants={itemVariants}
+                className="text-center p-6 bg-gray-800/40 backdrop-blur-md border border-white/10 rounded-2xl"
               >
-                <div className="bg-gradient-to-br from-blue-400 to-pink-400 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-4 animate-pulse">
-                  <Icon className="w-8 h-8 text-white" />
+                <div className="mb-4 inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                  <step.icon className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                <h3 className="text-lg font-bold mb-1 text-white">{step.title}</h3>
                 <p className="text-white/60 text-sm">{step.text}</p>
               </motion.div>
-            );
-          })}
+            ))}
+          </div>
         </motion.div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 px-4">
+      <section className="py-24 px-4 relative z-10">
         <motion.div
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: { opacity: 0, y: 40 },
-            visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.15 } },
-          }}
-          className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={containerVariants}
+          className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
-            return (
-              <motion.div
-                key={feature.title}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                whileHover={{ scale: 1.04, boxShadow: '0 8px 32px 0 rgba(80,80,255,0.10)' }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10 hover:bg-white/10 transition-all duration-300 flex flex-col shadow-lg"
-              >
-                <div className={`bg-gradient-to-br ${feature.color} p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-6 mx-auto animate-fadeIn`}> 
-                  <Icon className="w-8 h-8 text-white" />
+          {features.map((feature) => (
+            <motion.div
+              key={feature.title}
+              variants={itemVariants}
+              whileHover={{ y: -8, transition: { type: 'spring', stiffness: 300 } }}
+              className={`
+                group relative flex flex-col p-8 rounded-3xl border border-white/10 
+                bg-gray-800/40 backdrop-blur-xl shadow-xl ${feature.shadow}
+                transition-colors duration-300
+              `}
+            >
+              {/* Glowing Border on Hover */}
+              <div className={`absolute -inset-px rounded-3xl border-2 border-transparent ${feature.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+              
+              <div className="relative z-10">
+                <div className="flex-shrink-0 mb-6 flex items-center gap-4">
+                  <div className={`w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient}`}>
+                    <feature.icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white">{feature.title}</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4 text-center">{feature.title}</h2>
-                <p className="text-white/60 leading-relaxed mb-6 text-center">{feature.description}</p>
-                <ul className="space-y-3 mx-auto text-left max-w-xs">
+                <p className="text-white/60 leading-relaxed mb-6 flex-grow">{feature.description}</p>
+                <ul className="space-y-3 text-left border-t border-white/10 pt-5">
                   {feature.details.map((detail, i) => (
-                    <li key={i} className="flex items-center space-x-3">
-                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 animate-fadeIn" />
+                    <motion.li 
+                      key={i} 
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: i * 0.1 + 0.5 }}
+                      viewport={{ once: true }}
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
                       <span className="text-white/80 text-sm">{detail}</span>
-                    </li>
+                    </motion.li>
                   ))}
                 </ul>
-              </motion.div>
-            );
-          })}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-24 px-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto text-center space-y-8 p-12 bg-gray-800/40 backdrop-blur-md border border-white/10 rounded-3xl"
+        >
+          <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-pink-400">
+            Ready to Challenge Your Taste?
+          </h2>
+          <p className="text-xl text-white/70 max-w-2xl mx-auto">
+            Join thousands of cultural explorers discovering new dimensions of creativity and human expression.
+          </p>
+          <a
+            href="/auth"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 px-8 py-4 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 shadow-lg shadow-purple-500/20"
+          >
+            <span>Start Your Journey</span>
+            <ArrowRight className="w-5 h-5" />
+          </a>
         </motion.div>
       </section>
     </div>
   );
-} 
+}

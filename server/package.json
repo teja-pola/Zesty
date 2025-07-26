@@ -1,0 +1,32 @@
+{
+  "name": "zesty-server",
+  "version": "1.0.0",
+  "description": "Zesty API Server - Secure proxy for external APIs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "dotenv": "^16.4.5",
+    "axios": "^1.10.0",
+    "express-rate-limit": "^7.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": [
+    "api",
+    "proxy",
+    "security",
+    "qloo",
+    "gemini"
+  ],
+  "author": "Zesty Team",
+  "license": "MIT"
+} 

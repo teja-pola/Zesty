@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const QLOO_BASE_URL = 'https://hackathon.api.qloo.com';
-const QLOO_API_KEY = '_qxAPaYM59dU2kzfRrJwY5wcF0YOC_XNzaMU0cs7P0Q';
+const QLOO_BASE_URL = import.meta.env.VITE_QLOO_BASE_URL || 'https://hackathon.api.qloo.com';
+const QLOO_API_KEY = import.meta.env.VITE_QLOO_API_KEY;
+
+if (!QLOO_API_KEY) {
+  throw new Error('Missing Qloo API key environment variable');
+}
 
 const qlooApi = axios.create({
   baseURL: QLOO_BASE_URL,

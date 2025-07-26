@@ -10,9 +10,10 @@ import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Onboarding } from './pages/Onboarding';
+import { Explore } from './pages/Explore';
 import { Dashboard } from './pages/Dashboard';
-import { Curriculum } from './pages/Curriculum';
 import { Challenges } from './pages/Challenges';
+import { Connect } from './pages/Connect';
 import { Progress } from './pages/Progress';
 import About from './pages/About';
 import Features from './pages/Features';
@@ -34,19 +35,24 @@ function App() {
                   <Onboarding />
                 </ProtectedRoute>
               } />
+              <Route path="/explore" element={
+                <ProtectedRoute>
+                  <Explore />
+                </ProtectedRoute>
+              } />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } />
-              <Route path="/curriculum" element={
-                <ProtectedRoute>
-                  <Curriculum />
-                </ProtectedRoute>
-              } />
               <Route path="/challenges" element={
                 <ProtectedRoute>
                   <Challenges />
+                </ProtectedRoute>
+              } />
+              <Route path="/connect" element={
+                <ProtectedRoute>
+                  <Connect />
                 </ProtectedRoute>
               } />
               <Route path="/progress" element={

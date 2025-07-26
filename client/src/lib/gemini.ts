@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const GEMINI_API_KEY = 'AIzaSyBlkTKWe-BZqXtyHWQDfERdSq5HXDulXAI';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_URL = import.meta.env.VITE_GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent';
+
+if (!GEMINI_API_KEY) {
+  throw new Error('Missing Gemini API key environment variable');
+}
 
 export class GeminiService {
   static async generateContent(prompt: string): Promise<string> {

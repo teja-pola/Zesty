@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './hooks/useAuth';
@@ -17,6 +17,8 @@ import { Connect } from './pages/Connect';
 import { Progress } from './pages/Progress';
 import About from './pages/About';
 import Features from './pages/Features';
+import { Profile } from './pages/Profile';
+import { Settings } from './pages/Settings';
 
 function App() {
   return (
@@ -26,6 +28,16 @@ function App() {
           <Header />
           <main className="pt-20">
             <Routes>
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/about" element={<About />} />

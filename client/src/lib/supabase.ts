@@ -24,6 +24,14 @@ export type Profile = {
   cultural_exposure_score: number;
   discomfort_level: number;
   domains_unlocked: string[];
+  onboarding_complete?: boolean;
+  preferences?: {
+    music: string[];
+    movies: string[];
+    books: string[];
+    food: string[];
+    fashion: string[];
+  };
   created_at: string;
   updated_at: string;
 };
@@ -32,8 +40,8 @@ export type TastePreference = {
   id: string;
   user_id: string;
   domain: string;
-  preferences: any[];
-  dislikes: any[];
+  preferences: string[];
+  dislikes: string[];
   created_at: string;
   updated_at: string;
 };

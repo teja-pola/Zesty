@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Music, Film, BookOpen, Utensils, ShoppingBag, ArrowRight, Check } from 'lucide-react';
+import {  Music, Film, BookOpen, Utensils, ShoppingBag, ArrowRight, Check } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { QlooService, QlooEntity } from '../lib/qloo';
+import { GeminiService } from '../lib/gemini';
 
 const domains = [
   { key: 'music', label: 'Music', icon: Music, color: 'from-purple-500 to-pink-500' },
@@ -13,6 +15,12 @@ const domains = [
   { key: 'food', label: 'Food & Cuisine', icon: Utensils, color: 'from-orange-500 to-red-500' },
   { key: 'fashion', label: 'Fashion & Style', icon: ShoppingBag, color: 'from-indigo-500 to-purple-500' },
 ];
+
+type DiscomfortCard = {
+  domain: string;
+  entity: QlooEntity;
+  explanation: string;
+};
 
 export function Onboarding() {
   const navigate = useNavigate();
@@ -28,16 +36,49 @@ export function Onboarding() {
   const [currentDomain, setCurrentDomain] = useState(0);
   const [currentInput, setCurrentInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [discomfortCards, setDiscomfortCards] = useState<DiscomfortCard[]>([]);
+  const [showDiscomfort, setShowDiscomfort] = useState(false);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestLoading, setSuggestLoading] = useState(false);
 
-  const handleAddPreference = (domain: keyof typeof preferences, item: string) => {
-    if (item.trim() && !preferences[domain].includes(item.trim())) {
+  const handleAddPreference = async (domain: keyof typeof preferences, item: string) => {
+    if (item.trim() && !(preferences[domain as keyof typeof preferences] as string[]).includes(item.trim())) {
       setPreferences(prev => ({
         ...prev,
         [domain]: [...prev[domain], item.trim()]
       }));
       setCurrentInput('');
+      // Fetch new suggestions based on the added item
+      await fetchSuggestions(domain, item.trim());
     }
   };
+
+  const fetchSuggestions = async (domain: keyof typeof preferences, seed?: string) => {
+    setSuggestLoading(true);
+    try {
+      // Use QlooService to fetch suggestions for the domain
+      const query = seed || '';
+      const results = await QlooService.searchEntity(query, domain);
+      if (results && Array.isArray(results)) {
+        setSuggestions(results.map((r: { name: string }) => r.name));
+      } else if (results && results.name) {
+        setSuggestions([results.name]);
+      } else {
+        setSuggestions([]);
+      }
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSuggestLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch initial suggestions for the current domain
+    fetchSuggestions(domains[currentDomain].key as keyof typeof preferences);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDomain]);
 
   const handleRemovePreference = (domain: keyof typeof preferences, item: string) => {
     setPreferences(prev => ({
@@ -59,20 +100,18 @@ export function Onboarding() {
       toast.error('Please sign in to continue');
       return;
     }
-
     setLoading(true);
     try {
       // Calculate initial cultural exposure score based on preferences
       const totalPreferences = Object.values(preferences).reduce((sum, items) => sum + items.length, 0);
       const culturalExposureScore = Math.max(20, Math.min(50, 20 + totalPreferences * 2));
-      
-      // Update user profile with processed data
+      // Update user profile with processed data and mark onboarding as complete
       await updateProfile({
         cultural_exposure_score: culturalExposureScore,
         discomfort_level: 1,
         domains_unlocked: ['music', 'movies', 'books', 'food', 'fashion'],
+        onboarding_complete: true,
       });
-
       // Store taste preferences in Supabase
       const { error } = await supabase
         .from('taste_preferences')
@@ -82,18 +121,67 @@ export function Onboarding() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
-
       if (error) throw error;
-
-      toast.success('Onboarding completed! Welcome to Zesty!');
-      navigate('/explore');
+      // Fetch discomfort recommendations and explanations
+      const discomforts: DiscomfortCard[] = [];
+      for (const domain of Object.keys(preferences)) {
+        const likes = preferences[domain as keyof typeof preferences];
+        if (likes.length === 0) continue;
+        // Use the first liked item as the seed
+        const entity = await QlooService.searchEntity(likes[0], domain);
+        if (!entity) continue;
+        const antitheses = await QlooService.getAntitheses(entity.id, domain);
+        for (const anti of antitheses.slice(0, 2)) { // Limit to 2 per domain for demo
+          const explanation = await GeminiService.generateContent(
+            `You like ${likes.join(', ')} in ${domain}. Try "${anti.name}" for a new experience. Why?`
+          );
+          discomforts.push({ domain, entity: anti, explanation });
+        }
+      }
+      setDiscomfortCards(discomforts);
+      setShowDiscomfort(true);
+      setCardIndex(0);
+      setLoading(false);
+      // If no discomforts, or after showing, redirect to explore after a short delay
+      if (discomforts.length === 0) {
+        setTimeout(() => navigate('/explore'), 1200);
+      }
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Failed to complete onboarding. Please try again.');
+      setShowDiscomfort(false);
     } finally {
       setLoading(false);
     }
   };
+
+  if (showDiscomfort) {
+    // If all cards are viewed, auto-redirect to explore
+    if (discomfortCards.length > 0 && cardIndex >= discomfortCards.length - 1) {
+      setTimeout(() => navigate('/explore'), 1500);
+    }
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-900 via-red-900 to-black text-white flex flex-col items-center justify-center">
+        <div className="max-w-xl w-full p-6">
+          <h2 className="text-2xl font-bold mb-4 text-center">Your Discomfort Dose is Ready</h2>
+          {discomfortCards.length === 0 ? (
+            <div className="text-center">No discomfort recommendations found. <button className="underline" onClick={()=>navigate('/explore')}>Skip</button></div>
+          ) : (
+            <div className="bg-white/10 rounded-xl p-6 shadow-lg flex flex-col items-center">
+              <h3 className="text-lg font-semibold mb-2">{discomfortCards[cardIndex].entity.name}</h3>
+              <p className="text-sm text-white/70 mb-2">Domain: {discomfortCards[cardIndex].domain}</p>
+              <p className="mb-4">{discomfortCards[cardIndex].explanation}</p>
+              <div className="flex space-x-4">
+                <button onClick={()=>setCardIndex(i=>Math.max(0,i-1))} disabled={cardIndex===0} className="px-4 py-2 rounded bg-white/20">Previous</button>
+                <button onClick={()=>setCardIndex(i=>Math.min(discomfortCards.length-1,i+1))} disabled={cardIndex===discomfortCards.length-1} className="px-4 py-2 rounded bg-white/20">Next</button>
+                <button onClick={()=>navigate('/explore')} className="px-4 py-2 rounded bg-gradient-to-r from-orange-500 to-red-500 font-bold">Start Exploring</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const currentDomainData = domains[currentDomain];
 
@@ -106,12 +194,12 @@ export function Onboarding() {
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-bold">Welcome to Zesty</h1>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-white/60">Step {currentStep + 1} of 2</span>
+                <span className="text-sm text-white/60">Step {currentDomain + 1} of {domains.length}</span>
                 <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
                     initial={{ width: 0 }}
-                    animate={{ width: `${((currentStep * domains.length + currentDomain + 1) / (domains.length + 1)) * 100}%` }}
+                    animate={{ width: `${((currentDomain + 1) / domains.length) * 100}%` }}
                     transition={{ duration: 0.5 }}
                   />
                 </div>
@@ -147,25 +235,43 @@ export function Onboarding() {
 
               {/* Input Section */}
               <div className="max-w-md mx-auto space-y-4">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={currentInput}
-                    onChange={(e) => setCurrentInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddPreference(currentDomainData.key as keyof typeof preferences, currentInput);
-                      }
-                    }}
-                    placeholder={`Add your favorite ${currentDomainData.label.toLowerCase()}...`}
-                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    onClick={() => handleAddPreference(currentDomainData.key as keyof typeof preferences, currentInput)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105"
-                  >
-                    Add
-                  </button>
+                <div className="flex flex-col space-y-2">
+                  {/* Suggestions */}
+                  {suggestLoading ? (
+                    <div className="text-white/60 text-sm">Loading suggestions...</div>
+                  ) : suggestions.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          className="bg-white/10 hover:bg-purple-500/30 text-white/80 px-3 py-1 rounded-full text-xs transition-all"
+                          onClick={() => handleAddPreference(currentDomainData.key as keyof typeof preferences, s)}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={currentInput}
+                      onChange={(e) => setCurrentInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddPreference(currentDomainData.key as keyof typeof preferences, currentInput);
+                        }
+                      }}
+                      placeholder={`Add your favorite ${currentDomainData.label.toLowerCase()}...`}
+                      className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={() => handleAddPreference(currentDomainData.key as keyof typeof preferences, currentInput)}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
 
                 {/* Preferences List */}

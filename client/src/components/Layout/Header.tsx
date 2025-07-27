@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Compass, LogOut, Menu, X, Zap, Target, Users, BarChart3 } from 'lucide-react';
+import { Compass, LogOut, Menu, X, Zap, Target, Users, BarChart3, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
@@ -16,7 +16,7 @@ export function Header() {
       setIsMenuOpen(false);
       navigate('/');
       toast.success('Signed out successfully');
-    } catch (error) {
+    } catch {
       toast.error('Error signing out');
     }
   };
@@ -75,6 +75,16 @@ export function Header() {
                   <BarChart3 className="w-4 h-4" />
                   <span>Dashboard</span>
                 </Link>
+                <Link 
+                  to="/settings"
+                  className={`flex items-center space-x-2 text-sm font-medium transition-colors hover:text-purple-400 ${
+                    isActive('/settings') ? 'text-purple-400' : 'text-white/80'
+                  }`}
+                  title="Settings"
+                >
+                  <SettingsIcon className="w-4 h-4" />
+                  <span>Settings</span>
+                </Link>
                 <button 
                   onClick={handleSignOut} 
                   className="flex items-center space-x-2 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-xl transition-colors"
@@ -121,6 +131,7 @@ export function Header() {
                     <Zap className="w-4 h-4" />
                     <span>Explore</span>
                   </Link>
+                  
                   <Link 
                     to="/challenges" 
                     className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors py-2" 
@@ -144,6 +155,14 @@ export function Header() {
                   >
                     <BarChart3 className="w-4 h-4" />
                     <span>Dashboard</span>
+                  </Link>
+                  <Link 
+                    to="/settings"
+                    className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    <span>Settings</span>
                   </Link>
                   <button 
                     onClick={handleSignOut} 

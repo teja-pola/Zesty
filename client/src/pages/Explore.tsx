@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { Heart, X, Check, Share2, Star, TrendingUp, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Heart, X, Share2, Star, TrendingUp, Zap } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { ApiService, Challenge, QlooEntity } from '../lib/api';
+import { ApiService, QlooEntity } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -26,9 +26,16 @@ export function Explore() {
   const [swiping, setSwiping] = useState(false);
 
   useEffect(() => {
-    if (user && profile) {
+    if (!user) return;
+    if (profile && !profile.onboarding_complete) {
+      // If onboarding not complete, redirect to onboarding
+      window.location.replace('/onboarding');
+      return;
+    }
+    if (user && profile && profile.onboarding_complete) {
       generateCards();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile]);
 
   const generateCards = async () => {
@@ -165,7 +172,7 @@ export function Explore() {
     );
   }
 
-  if (cards.length === 0) {
+  if (cards.length === 0 && !loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black flex items-center justify-center">
         <div className="text-center space-y-6">
@@ -222,7 +229,7 @@ export function Explore() {
             <motion.div
               drag="x"
               dragConstraints={{ left: -100, right: 100 }}
-              onDragEnd={(event, info) => {
+              onDragEnd={(_, info) => {
                 if (info.offset.x > 100) {
                   handleSwipe('right', currentCard);
                 } else if (info.offset.x < -100) {

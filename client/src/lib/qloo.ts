@@ -1,19 +1,5 @@
 import axios from 'axios';
-
-const QLOO_BASE_URL = import.meta.env.VITE_QLOO_BASE_URL || 'https://hackathon.api.qloo.com';
-const QLOO_API_KEY = import.meta.env.VITE_QLOO_API_KEY;
-
-if (!QLOO_API_KEY) {
-  throw new Error('Missing Qloo API key environment variable');
-}
-
-const qlooApi = axios.create({
-  baseURL: QLOO_BASE_URL,
-  headers: {
-    'Authorization': `Bearer ${QLOO_API_KEY}`,
-    'Content-Type': 'application/json'
-  }
-});
+const API_BASE = '/api/qloo';
 
 export interface QlooEntity {
   id: string;
@@ -25,14 +11,10 @@ export interface QlooEntity {
 export class QlooService {
   static async searchEntity(query: string, type: string): Promise<QlooEntity | null> {
     try {
-      const response = await qlooApi.get('/search', {
-        params: { 
-          query, 
-          types: type.split(':').pop() 
-        }
+      const response = await axios.get(`${API_BASE}/search`, {
+        params: { query, type }
       });
-      
-      return response.data.results?.[0] || null;
+      return response.data?.[0] || null;
     } catch (error) {
       console.error('Qloo search error:', error);
       return null;
@@ -41,16 +23,10 @@ export class QlooService {
 
   static async getRecommendations(entityId: string, type: string): Promise<QlooEntity[]> {
     try {
-      const response = await qlooApi.post('/v2/insights', {
-        signal: { 
-          interests: { 
-            entities: [entityId] 
-          } 
-        },
-        filter: { type }
+      const response = await axios.post(`${API_BASE}/recommendations`, null, {
+        params: { entityId, type }
       });
-      
-      return response.data.related || [];
+      return response.data || [];
     } catch (error) {
       console.error('Qloo recommendations error:', error);
       return [];
@@ -59,44 +35,17 @@ export class QlooService {
 
   static async getAntitheses(entityId: string, type: string): Promise<QlooEntity[]> {
     try {
-      // Using insights with negative signal for discomfort recommendations
-      const response = await qlooApi.post('/v2/insights', {
-        signal: { 
-          interests: { 
-            entities: [entityId] 
-          } 
-        },
-        filter: { 
-          type,
-          limit: 10
-        }
+      const response = await axios.get(`${API_BASE}/antitheses`, {
+        params: { entityId, type }
       });
-      
-      // Return results that are contextually different
-      return response.data.related?.slice(-5) || [];
+      return response.data || [];
     } catch (error) {
       console.error('Qloo antitheses error:', error);
       return [];
     }
   }
-
-  static async getCrossDomainAffinity(entityIds: string[]): Promise<any> {
-    try {
-      const response = await qlooApi.post('/v2/insights', {
-        signal: { 
-          interests: { 
-            entities: entityIds 
-          } 
-        },
-        filter: {
-          types: ['movie', 'music', 'food', 'book', 'fashion']
-        }
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Qloo cross-domain error:', error);
-      return null;
-    }
-  }
 }
+// static async getCrossDomainAffinity(entityIds: string[]): Promise<any> {
+//   // Not implemented: This method is a placeholder and should be implemented if needed.
+//   return null;
+// }

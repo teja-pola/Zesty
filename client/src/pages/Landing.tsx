@@ -1,27 +1,28 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import  { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { 
-  Compass, 
+   
   Brain, 
   Target, 
   Sparkles, 
   ArrowRight, 
   Play,
-  Users,
+  
   TrendingUp,
-  Award,
+  
   Music,
   Film,
   ChefHat,
   BookOpen,
   Shirt,
-  Globe,
+  
   Zap,
-  Heart,
-  Eye,
-  Palette,
-  Coffee
+  
+  Eye
+  
+  
 } from 'lucide-react';
 
 export function Landing() {
@@ -84,7 +85,7 @@ export function Landing() {
     }
   ];
 
-  const [showVideo, setShowVideo] = useState(false);
+  // Removed unused showVideo state
   const [videoPlayed, setVideoPlayed] = useState(false);
 
 const divConfig = [
@@ -142,6 +143,15 @@ const divConfig = [
 ]as const;
  
 
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStartJourney = () => {
+    if (!user) return navigate('/auth');
+    if (profile && !profile.onboarding_complete) return navigate('/onboarding');
+    return navigate('/explore');
+  };
+
   return (
     <div className="relative overflow-hidden">
       {/* Subtle Grid Background */}
@@ -174,17 +184,17 @@ const divConfig = [
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-              <Link
-                to="/auth"
+              <button
+                onClick={handleStartJourney}
                 className="group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 px-8 py-4 rounded-2xl text-white font-medium transition-all duration-300 hover:scale-105 flex items-center space-x-2"
               >
                 <span>Start Your Cultural Journey</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </button>
               
               <button 
                 className="group flex items-center space-x-3 text-white/80 hover:text-white transition-colors"
-                onClick={() => { setShowVideo(true); setVideoPlayed(true); }}
+                onClick={() => { setVideoPlayed(true); }}
               >
                 <div className="bg-white/10 p-3 rounded-full group-hover:bg-white/20 transition-colors">
                   <Play className="w-6 h-6" />
@@ -210,7 +220,7 @@ const divConfig = [
                   <button
                     className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition-colors cursor-pointer z-10"
                     aria-label="Play video"
-                    onClick={() => { setShowVideo(true); setVideoPlayed(true); }}
+                    onClick={() => { setVideoPlayed(true); }}
                     tabIndex={0}
                   >
                     <div className="bg-white/20 p-6 rounded-full flex items-center justify-center shadow-lg">
@@ -534,13 +544,13 @@ const divConfig = [
               Join thousands of cultural explorers discovering new dimensions of taste, creativity, and human expression.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/auth"
+              <button
+                onClick={handleStartJourney}
                 className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 px-8 py-4 rounded-2xl text-white font-medium transition-all duration-300 hover:scale-105"
               >
                 <span>Start Your Cultural Journey</span>
                 <ArrowRight className="w-5 h-5" />
-              </Link>
+              </button>
               <div className="text-white/60 text-sm">
                 Free to start • No credit card required
               </div>

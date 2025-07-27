@@ -12,7 +12,7 @@ import { Auth } from './pages/Auth';
 import { OnboardingNew as Onboarding } from './pages/OnboardingNew';
 import { Explore } from './pages/Explore';
 import { Dashboard } from './pages/Dashboard';
-import { Challenges } from './pages/Challenges';
+import Challenges from './pages/Challenges';
 import { Connect } from './pages/Connect';
 import { Progress } from './pages/Progress';
 import About from './pages/About';

@@ -1,18 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Target, 
   Clock, 
   CheckCircle, 
-  Plus,
-  Calendar,
   Trophy,
-  Flame,
-  Star
+  Star,
+  RotateCcw,
+  Trash2
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
-import { GeminiService } from '../lib/gemini';
 import toast from 'react-hot-toast';
 
 interface Challenge {
@@ -20,144 +16,73 @@ interface Challenge {
   title: string;
   description: string;
   domain: string;
-  task_type: string;
-  difficulty_level: number;
-  is_completed: boolean;
-  completion_proof?: string;
-  created_at: string;
-  completed_at?: string;
-  due_date?: string;
+  difficulty: number;
+  isCompleted: boolean;
+  dateAdded: string;
+  dateCompleted?: string;
 }
 
-export function Challenges() {
-  const { user } = useAuth();
+const Challenges = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed'>('all');
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadChallenges();
-    }
-  }, [user]);
+    loadChallenges();
+  }, []);
 
-  const loadChallenges = async () => {
-    if (!user) return;
-
+  const loadChallenges = () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setChallenges(data || []);
+      const storedChallenges = localStorage.getItem('zesty_challenges');
+      if (storedChallenges) {
+        const parsedChallenges = JSON.parse(storedChallenges);
+        setChallenges(parsedChallenges);
+      } else {
+        setChallenges([]);
+      }
     } catch (error) {
       console.error('Error loading challenges:', error);
-    } finally {
-      setLoading(false);
+      setChallenges([]);
+      toast.error('Failed to load challenges');
     }
+    setLoading(false);
   };
 
-  const generateChallenge = async (domain: string) => {
-    if (!user) return;
-    setGenerating(true);
-
+  const saveChallenges = (updatedChallenges: Challenge[]) => {
     try {
-      // Get user's current comfort level from profile
-      const userComfortLevel = profile?.discomfort_level || 1;
-      const difficulty = Math.min(userComfortLevel + Math.floor(Math.random() * 2), 5);
-      
-      let challengeData;
-      try {
-        challengeData = await GeminiService.generateChallengeTask(domain, difficulty);
-      } catch (error) {
-        // Fallback challenges if Gemini fails
-        challengeData = generateFallbackChallenge(domain, difficulty);
-      }
-
-      const { error } = await supabase
-        .from('challenges')
-        .insert({
-          user_id: user.id,
-          title: challengeData.title,
-          description: challengeData.description,
-          domain,
-          task_type: 'exploration',
-          difficulty_level: difficulty,
-          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        });
-
-      if (error) throw error;
-
-      await loadChallenges();
-      toast.success('New challenge created!');
+      localStorage.setItem('zesty_challenges', JSON.stringify(updatedChallenges));
+      setChallenges(updatedChallenges);
     } catch (error) {
-      console.error('Error generating challenge:', error);
-      toast.error('Failed to generate challenge');
-    } finally {
-      setGenerating(false);
+      console.error('Error saving challenges:', error);
+      toast.error('Failed to save changes');
     }
   };
 
-  const generateFallbackChallenge = (domain: string, difficulty: number) => {
-    const challenges = {
-      movies: [
-        { title: 'Watch a Silent Film', description: 'Experience cinema without dialogue for 30 minutes', culturalContext: 'Silent films teach visual storytelling and patience' },
-        { title: 'Foreign Language Film', description: 'Watch a movie with subtitles from a different culture', culturalContext: 'Expands cultural perspective and empathy' },
-        { title: 'Documentary Challenge', description: 'Watch a documentary on a topic you usually avoid', culturalContext: 'Broadens knowledge and challenges assumptions' }
-      ],
-      music: [
-        { title: 'Classical Music Hour', description: 'Listen to 1 hour of classical music without interruption', culturalContext: 'Develops appreciation for complex musical structures' },
-        { title: 'World Music Exploration', description: 'Discover traditional music from 3 different countries', culturalContext: 'Connects you to global cultural heritage' },
-        { title: 'Instrumental Focus', description: 'Listen to music without vocals for a full day', culturalContext: 'Enhances appreciation for pure musical composition' }
-      ],
-      food: [
-        { title: 'Fermented Food Challenge', description: 'Try 3 different fermented foods this week', culturalContext: 'Fermentation is a cornerstone of many food cultures' },
-        { title: 'Spice Level Up', description: 'Eat something spicier than your usual tolerance', culturalContext: 'Many cultures use spice for flavor complexity and health' },
-        { title: 'Unfamiliar Cuisine', description: 'Order from a cuisine you\'ve never tried before', culturalContext: 'Food is a gateway to understanding different cultures' }
-      ],
-      books: [
-        { title: 'Poetry Appreciation', description: 'Read poetry for 30 minutes daily this week', culturalContext: 'Poetry distills human experience into concentrated art' },
-        { title: 'Non-Fiction Deep Dive', description: 'Read about a topic completely outside your interests', culturalContext: 'Expands intellectual horizons and empathy' },
-        { title: 'Classic Literature', description: 'Start reading a classic you\'ve been avoiding', culturalContext: 'Classics endure because they capture universal human truths' }
-      ],
-      fashion: [
-        { title: 'Color Experiment', description: 'Wear a color you never choose for a full week', culturalContext: 'Colors carry cultural meanings and psychological effects' },
-        { title: 'Style Swap', description: 'Dress in a completely different style for one day', culturalContext: 'Fashion is a form of cultural expression and identity' },
-        { title: 'Traditional Wear', description: 'Research and wear traditional clothing from another culture respectfully', culturalContext: 'Traditional clothing reflects cultural values and history' }
-      ]
-    };
-
-    const domainChallenges = challenges[domain as keyof typeof challenges] || challenges.movies;
-    const challenge = domainChallenges[Math.floor(Math.random() * domainChallenges.length)];
-    
-    return {
-      title: challenge.title,
-      description: challenge.description,
-      culturalContext: challenge.culturalContext
-    };
+  const markAsCompleted = (challengeId: string) => {
+    const updatedChallenges = challenges.map(challenge =>
+      challenge.id === challengeId
+        ? { ...challenge, isCompleted: true, dateCompleted: new Date().toISOString() }
+        : challenge
+    );
+    saveChallenges(updatedChallenges);
+    toast.success('Challenge completed! 🎉');
   };
 
-  const completeChallenge = async (challengeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('challenges')
-        .update({
-          is_completed: true,
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', challengeId);
+  const markAsActive = (challengeId: string) => {
+    const updatedChallenges = challenges.map(challenge =>
+      challenge.id === challengeId
+        ? { ...challenge, isCompleted: false, dateCompleted: undefined }
+        : challenge
+    );
+    saveChallenges(updatedChallenges);
+    toast.success('Challenge reactivated!');
+  };
 
-      if (error) throw error;
-
-      await loadChallenges();
-      toast.success('Challenge completed! 🎉');
-    } catch (error) {
-      console.error('Error completing challenge:', error);
-      toast.error('Failed to complete challenge');
-    }
+  const removeChallenge = (challengeId: string) => {
+    const updatedChallenges = challenges.filter(challenge => challenge.id !== challengeId);
+    saveChallenges(updatedChallenges);
+    toast.success('Challenge removed');
   };
 
   const getDifficultyStars = (level: number) => {
@@ -171,27 +96,40 @@ export function Challenges() {
     ));
   };
 
-  const domains = [
-    { name: 'movies', icon: '🎬', label: 'Movies' },
-    { name: 'music', icon: '🎵', label: 'Music' },
-    { name: 'food', icon: '🍜', label: 'Food' },
-    { name: 'books', icon: '📚', label: 'Books' },
-    { name: 'fashion', icon: '👗', label: 'Fashion' }
-  ];
+  const getDomainIcon = (domain: string) => {
+    const icons: Record<string, string> = {
+      movies: '🎬',
+      music: '🎵',
+      food: '🍜',
+      books: '📚',
+      fashion: '👗',
+      default: '🎯'
+    };
+    return icons[domain] || icons.default;
+  };
+
+  const filteredChallenges = challenges.filter(challenge => {
+    if (activeTab === 'active') return !challenge.isCompleted;
+    if (activeTab === 'completed') return challenge.isCompleted;
+    return true;
+  });
+
+  const stats = {
+    total: challenges.length,
+    active: challenges.filter(c => !c.isCompleted).length,
+    completed: challenges.filter(c => c.isCompleted).length
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     );
   }
 
-  const activeChallenges = challenges.filter(c => !c.is_completed);
-  const completedChallenges = challenges.filter(c => c.is_completed);
-
   return (
-    <div className="min-h-screen px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -200,144 +138,163 @@ export function Challenges() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Cultural Challenges
+            Your Challenges
           </h1>
           <p className="text-xl text-white/60">
-            Push your boundaries with personalized cultural exploration tasks
+            Track your cultural exploration journey
           </p>
         </motion.div>
 
-        {/* Generate New Challenge */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Create New Challenge</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {domains.map(domain => (
-              <motion.button
-                key={domain.name}
-                onClick={() => generateChallenge(domain.name)}
-                disabled={generating}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: domains.indexOf(domain) * 0.1 }}
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-3 gap-4 mb-8"
+        >
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-white mb-2">{stats.total}</div>
+            <div className="text-white/60">Total</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-blue-400 mb-2">{stats.active}</div>
+            <div className="text-white/60">Active</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center">
+            <div className="text-3xl font-bold text-green-400 mb-2">{stats.completed}</div>
+            <div className="text-white/60">Completed</div>
+          </div>
+        </motion.div>
+
+        {/* Filter Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex justify-center mb-8"
+        >
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-2 flex">
+            {(['all', 'active', 'completed'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  activeTab === tab
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/60 hover:text-white hover:bg-white/10'
+                }`}
               >
-                <div className="text-3xl mb-3">{domain.icon}</div>
-                <div className="text-white font-medium">{domain.label}</div>
-                {generating && (
-                  <div className="mt-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>
-                  </div>
-                )}
-              </motion.button>
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Active Challenges */}
-        {activeChallenges.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Target className="w-6 h-6 mr-2 text-purple-400" />
-              Active Challenges ({activeChallenges.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activeChallenges.map((challenge, index) => (
-                <motion.div
-                  key={challenge.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                  className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all duration-300"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">
-                        {domains.find(d => d.name === challenge.domain)?.icon || '🎯'}
-                      </span>
-                      <span className="text-xs font-medium text-purple-400 uppercase tracking-wider">
-                        {challenge.domain}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {getDifficultyStars(challenge.difficulty_level)}
+        {/* Challenges Grid */}
+        {filteredChallenges.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center py-16"
+          >
+            <Target className="w-16 h-16 text-white/40 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2">
+              {activeTab === 'all' ? 'No challenges yet' : `No ${activeTab} challenges`}
+            </h3>
+            <p className="text-white/60 mb-6">
+              {activeTab === 'all' 
+                ? 'Start exploring to add challenges to your journey!'
+                : `You don't have any ${activeTab} challenges at the moment.`
+              }
+            </p>
+            {activeTab === 'all' && (
+              <button
+                onClick={() => window.location.href = '/explore'}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-xl font-medium hover:from-purple-600 hover:to-blue-600 transition-all duration-300"
+              >
+                Explore Challenges
+              </button>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredChallenges.map((challenge, index) => (
+              <motion.div
+                key={challenge.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 ${
+                  challenge.isCompleted ? 'opacity-75' : ''
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-2xl">{getDomainIcon(challenge.domain)}</div>
+                    <div>
+                      <div className="text-sm text-white/60 capitalize">{challenge.domain}</div>
+                      <div className="flex">{getDifficultyStars(challenge.difficulty)}</div>
                     </div>
                   </div>
+                  {challenge.isCompleted && (
+                    <CheckCircle className="w-6 h-6 text-green-400" />
+                  )}
+                </div>
 
-                  <h3 className="text-xl font-bold text-white mb-3">{challenge.title}</h3>
-                  <p className="text-white/60 mb-4">{challenge.description}</p>
+                <h3 className="text-lg font-bold text-white mb-2">{challenge.title}</h3>
+                <p className="text-white/70 text-sm mb-4 line-clamp-3">{challenge.description}</p>
 
-                  {challenge.due_date && (
-                    <div className="flex items-center text-white/40 text-sm mb-4">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Due: {new Date(challenge.due_date).toLocaleDateString()}
+                <div className="flex items-center justify-between text-xs text-white/50 mb-4">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-3 h-3" />
+                    <span>Added {new Date(challenge.dateAdded).toLocaleDateString()}</span>
+                  </div>
+                  {challenge.isCompleted && challenge.dateCompleted && (
+                    <div className="flex items-center space-x-1">
+                      <Trophy className="w-3 h-3" />
+                      <span>Completed {new Date(challenge.dateCompleted).toLocaleDateString()}</span>
                     </div>
                   )}
+                </div>
 
+                <div className="flex space-x-2">
+                  {!challenge.isCompleted ? (
+                    <button
+                      onClick={() => markAsCompleted(challenge.id)}
+                      className="flex-1 bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-2 rounded-xl font-medium hover:bg-green-500/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Complete</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => markAsActive(challenge.id)}
+                      className="flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-xl font-medium hover:bg-blue-500/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Reactivate</span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => completeChallenge(challenge.id)}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 px-4 py-3 rounded-2xl text-white font-medium transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
+                    onClick={() => removeChallenge(challenge.id)}
+                    className="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl font-medium hover:bg-red-500/30 transition-all duration-300"
                   >
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Mark Complete</span>
+                    <Trash2 className="w-4 h-4" />
                   </button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Completed Challenges */}
-        {completedChallenges.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Trophy className="w-6 h-6 mr-2 text-green-400" />
-              Completed Challenges ({completedChallenges.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {completedChallenges.map((challenge, index) => (
-                <motion.div
-                  key={challenge.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                  className="bg-green-500/10 backdrop-blur-xl border border-green-400/30 rounded-3xl p-6"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">
-                        {domains.find(d => d.name === challenge.domain)?.icon || '🎯'}
-                      </span>
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {getDifficultyStars(challenge.difficulty_level)}
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-white mb-2">{challenge.title}</h3>
-                  <p className="text-white/60 text-sm mb-3">{challenge.description}</p>
-
-                  {challenge.completed_at && (
-                    <div className="flex items-center text-green-400 text-sm">
-                      <Clock className="w-4 h-4 mr-2" />
-                      Completed: {new Date(challenge.completed_at).toLocaleDateString()}
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {challenges.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">🎯</div>
-            <h2 className="text-2xl font-bold text-white mb-4">No challenges yet!</h2>
-            <p className="text-white/60 mb-8">Create your first cultural challenge to start exploring.</p>
-          </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         )}
       </div>
     </div>
   );
-}
+};
+
+export default Challenges;

@@ -129,7 +129,7 @@ const Challenges = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

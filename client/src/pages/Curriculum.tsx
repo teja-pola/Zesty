@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Map, 
+
   ArrowRight, 
   CheckCircle, 
   Clock,
@@ -111,7 +111,7 @@ export function Curriculum() {
 
   const generateMockCurriculumSteps = async (domain: string, currentTastes: string[]): Promise<CurriculumStep[]> => {
     // Generate more personalized curriculum based on user's current tastes
-    const getPersonalizedCurriculum = (domain: string, tastes: string[]) => {
+    const getPersonalizedCurriculum = (domain: string, _tastes: string[]) => {
       const baseCurricula = {
       movies: [
         { title: 'Genre Bridge Films', description: 'Films that blend your favorite genres with new elements', difficulty: 1 },

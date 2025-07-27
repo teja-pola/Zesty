@@ -10,6 +10,21 @@ export class GeminiService {
       return 'Unable to generate explanation at the moment.';
     }
   }
+
+  /**
+   * Generate a step-by-step curriculum plan for a domain.
+   * This is a thin wrapper around generateContent so the
+   * rest of the app can call GeminiService.generateCurriculumPlan
+   * without TypeScript errors.
+   */
+  static async generateCurriculumPlan(
+    preferences: string[],
+    stepTitles: string[],
+    domain: string
+  ): Promise<string> {
+    const prompt = `Create a short learning curriculum (max 6 bullet points) for someone who likes ${preferences.join(", ")} in the domain of ${domain}. The curriculum should cover these steps: ${stepTitles.join(", ")}.`;
+    return this.generateContent(prompt);
+  }
 }
 // static async explainDiscomfortRecommendation(
 //   userLikes: string[], 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, MessageCircle, Phone, Share2, Heart, Zap, Target, Star } from 'lucide-react';
+import { Users, MessageCircle, Share2, Heart, Zap, Target, Star } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { ApiService } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -240,14 +240,14 @@ export function Connect() {
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-4">Your Tastes</h3>
                       <div className="space-y-3">
-                        {Object.entries(profile?.taste_profile || {}).map(([domain, items]) => (
+                        {Object.entries(((profile as any)?.taste_profile) || {}).map(([domain, items]) => (
                           <div key={domain} className="bg-white/5 rounded-xl p-3">
                             <div className="flex items-center space-x-2 mb-2">
                               <Star className="w-4 h-4 text-yellow-400" />
                               <span className="text-sm font-medium text-white/80 capitalize">{domain}</span>
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {items?.slice(0, 3).map((item: string, index: number) => (
+                              {(Array.isArray(items) ? items.slice(0,3) : []).map((item: string, index: number) => (
                                 <span key={index} className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
                                   {item}
                                 </span>
@@ -261,14 +261,14 @@ export function Connect() {
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-4">Nemesis Tastes</h3>
                       <div className="space-y-3">
-                        {Object.entries(nemesis.taste_profile).map(([domain, items]) => (
+                        {Object.entries(nemesis.taste_profile || {}).map(([domain, items]) => (
                           <div key={domain} className="bg-white/5 rounded-xl p-3">
                             <div className="flex items-center space-x-2 mb-2">
                               <Zap className="w-4 h-4 text-orange-400" />
                               <span className="text-sm font-medium text-white/80 capitalize">{domain}</span>
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {items?.slice(0, 3).map((item: string, index: number) => (
+                              {(Array.isArray(items) ? items.slice(0,3) : []).map((item: string, index: number) => (
                                 <span key={index} className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded">
                                   {item}
                                 </span>

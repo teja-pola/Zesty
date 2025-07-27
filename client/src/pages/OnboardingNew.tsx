@@ -249,7 +249,7 @@ export function OnboardingNew() {
               <h3 className="text-sm font-medium text-gray-400 mb-3">Your Selections:</h3>
               <div className="flex flex-wrap gap-2">
                 <AnimatePresence>
-                  {preferences[currentDomain.key]?.map((item, index) => (
+                  {preferences[currentDomain.key]?.map((item, _idx) => (
                     <motion.div
                       key={item}
                       initial={{ opacity: 0, scale: 0.8 }}

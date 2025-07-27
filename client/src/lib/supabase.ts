@@ -32,6 +32,9 @@ export type Profile = {
     food: string[];
     fashion: string[];
   };
+  username?: string;
+  bio?: string;
+  location?: string;
   created_at: string;
   updated_at: string;
 };

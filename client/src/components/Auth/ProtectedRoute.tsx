@@ -22,11 +22,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  // If onboarding is not complete, redirect to /onboarding (unless already there)
-  if (profile && !profile.onboarding_complete && location.pathname !== '/onboarding') {
+  // If onboarding is not complete, redirect to /onboarding (unless already there or on /settings)
+  if (
+    profile &&
+    !profile.onboarding_complete &&
+    location.pathname !== '/onboarding' &&
+    location.pathname !== '/settings'
+  ) {
     return <Navigate to="/onboarding" replace />;
   }
-
   // If onboarding is complete and user tries to access onboarding, redirect to /explore
   if (profile && profile.onboarding_complete && location.pathname === '/onboarding') {
     return <Navigate to="/explore" replace />;

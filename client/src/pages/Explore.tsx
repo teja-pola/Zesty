@@ -27,12 +27,18 @@ export function Explore() {
 
   useEffect(() => {
     if (!user) return;
-    if (profile && !profile.onboarding_complete) {
+    
+    // Check onboarding completion from localStorage (fallback for Supabase issues)
+    const onboardingComplete = localStorage.getItem('zesty_onboarding_complete') === 'true';
+    const profileComplete = profile?.onboarding_complete;
+    
+    if (!onboardingComplete && !profileComplete) {
       // If onboarding not complete, redirect to onboarding
       window.location.replace('/onboarding');
       return;
     }
-    if (user && profile && profile.onboarding_complete) {
+    
+    if (user && (onboardingComplete || profileComplete)) {
       generateCards();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,52 +49,60 @@ export function Explore() {
 
     setLoading(true);
     try {
-      // Get user's taste preferences
-      const { data: preferences } = await supabase
-        .from('taste_preferences')
-        .select('preferences')
-        .eq('user_id', user.id)
-        .single();
+      // Get user's taste preferences (try Supabase first, fallback to localStorage)
+      let preferences = null;
+      
+      try {
+        const { data } = await supabase
+          .from('taste_preferences')
+          .select('preferences')
+          .eq('user_id', user.id)
+          .single();
+        preferences = data;
+      } catch (supabaseError) {
+        console.log('Supabase failed, using localStorage fallback');
+        // Fallback to localStorage
+        const localPrefs = localStorage.getItem('zesty_preferences');
+        if (localPrefs) {
+          preferences = { preferences: JSON.parse(localPrefs) };
+        }
+      }
 
       if (!preferences) {
         toast.error('Please complete onboarding first');
         return;
       }
 
-      const userPreferences = preferences.preferences;
-      const domains = ['music', 'movies', 'books', 'food', 'fashion'];
-      const generatedCards: CardData[] = [];
+      // Convert user preferences to the format expected by backend
+      const userPrefs = Object.entries(preferences.preferences || {})
+        .flatMap(([type, items]) => 
+          (items as string[]).map((name, index) => ({
+            id: `${type}-${index}`,
+            name,
+            type: type === 'movies' ? 'movie' : type === 'books' ? 'book' : type.slice(0, -1) // Remove 's' from plural
+          }))
+        );
 
-      // Generate challenges for each domain
-      for (const domain of domains) {
-        const userLikes = userPreferences[domain] || [];
-        
-        if (userLikes.length > 0) {
-          // Get antitheses from Qloo
-          const antitheses = await ApiService.getAntitheses(userLikes[0], domain);
-          
-          for (const antithesis of antitheses.slice(0, 2)) {
-            // Generate challenge using Gemini
-            const challenge = await ApiService.generateChallengeTask(domain, 3);
-            const explanation = await ApiService.explainDiscomfortRecommendation(
-              userLikes.slice(0, 3),
-              antithesis.name,
-              domain
-            );
-
-            generatedCards.push({
-              id: `${domain}-${antithesis.id}`,
-              title: challenge.title,
-              description: challenge.description,
-              domain,
-              difficulty: 3,
-              culturalContext: challenge.culturalContext,
-              qlooEntity: antithesis,
-              geminiExplanation: explanation,
-            });
-          }
-        }
-      }
+      // Call our new backend API
+      const response = await ApiService.generateDiscomfortCards(userPrefs, ['movie', 'music', 'book', 'restaurant']);
+      
+      // Convert backend response to frontend format
+      const generatedCards: CardData[] = response.cards.map((card: any) => ({
+        id: card.id,
+        title: card.name,
+        description: card.explanation,
+        domain: card.type,
+        difficulty: card.discomfort_level,
+        culturalContext: card.growth_benefit,
+        imageUrl: card.image,
+        qlooEntity: {
+          id: card.id,
+          name: card.name,
+          type: card.type,
+          metadata: card.metadata
+        },
+        geminiExplanation: card.explanation
+      }));
 
       // Shuffle cards for variety
       const shuffledCards = generatedCards.sort(() => Math.random() - 0.5);

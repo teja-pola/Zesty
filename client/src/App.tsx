@@ -9,7 +9,7 @@ import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 // Pages
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
-import { Onboarding } from './pages/Onboarding';
+import { OnboardingNew as Onboarding } from './pages/OnboardingNew';
 import { Explore } from './pages/Explore';
 import { Dashboard } from './pages/Dashboard';
 import { Challenges } from './pages/Challenges';

@@ -57,16 +57,27 @@ export function Onboarding() {
   const fetchSuggestions = async (domain: keyof typeof preferences, seed?: string) => {
     setSuggestLoading(true);
     try {
-      // Use QlooService to fetch suggestions for the domain
-      const query = seed || '';
-      const results = await QlooService.searchEntity(query, domain);
-      if (results && Array.isArray(results)) {
-        setSuggestions(results.map((r: { name: string }) => r.name));
-      } else if (results && results.name) {
-        setSuggestions([results.name]);
+      let recs: QlooEntity[] = [];
+      if (seed) {
+        // If a seed is provided, search for the entity and get recommendations for it
+        const entity = await QlooService.searchEntity(seed, domain);
+        if (entity) {
+          recs = await QlooService.getRecommendations(entity.id, domain);
+        }
       } else {
-        setSuggestions([]);
+        // If no seed, show static fallback suggestions for each domain
+        const staticSuggestions: Record<string, string[]> = {
+          music: ['The Beatles', 'Taylor Swift', 'Drake', 'BTS', 'Adele'],
+          movies: ['Inception', 'The Godfather', 'Parasite', 'Avengers', 'Spirited Away'],
+          books: ['1984', 'Harry Potter', 'The Alchemist', 'To Kill a Mockingbird', 'Sapiens'],
+          food: ['Pizza', 'Sushi', 'Tacos', 'Pasta', 'Ramen'],
+          fashion: ['Nike', 'Gucci', 'Zara', 'Levi’s', 'Chanel'],
+        };
+        setSuggestions(staticSuggestions[domain] || []);
+        setSuggestLoading(false);
+        return;
       }
+      setSuggestions(recs.map((r) => r.name));
     } catch {
       setSuggestions([]);
     } finally {
@@ -112,16 +123,30 @@ export function Onboarding() {
         domains_unlocked: ['music', 'movies', 'books', 'food', 'fashion'],
         onboarding_complete: true,
       });
-      // Store taste preferences in Supabase
-      const { error } = await supabase
-        .from('taste_preferences')
-        .upsert({
+      // Store taste preferences in Supabase: one row per domain, and one merged row for Settings/Explore
+      const upsertRows = Object.keys(preferences)
+        .filter((domain) => preferences[domain as keyof typeof preferences].length > 0)
+        .map((domain) => ({
           user_id: user.id,
-          preferences: preferences,
+          domain,
+          preferences: preferences[domain as keyof typeof preferences],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
-      if (error) throw error;
+        }));
+      // Add a merged row for all preferences (for Settings/Explore compatibility)
+      const mergedRow = {
+        user_id: user.id,
+        domain: 'all',
+        preferences: preferences,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      if (upsertRows.length > 0) {
+        const { error } = await supabase
+          .from('taste_preferences')
+          .upsert([...upsertRows, mergedRow], { onConflict: 'user_id,domain' });
+        if (error) throw error;
+      }
       // Fetch discomfort recommendations and explanations
       const discomforts: DiscomfortCard[] = [];
       for (const domain of Object.keys(preferences)) {
@@ -187,23 +212,18 @@ export function Onboarding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white">
-      {/* Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-black/20 backdrop-blur-xl border-b border-white/10">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold">Welcome to Zesty</h1>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-white/60">Step {currentDomain + 1} of {domains.length}</span>
-                <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${((currentDomain + 1) / domains.length) * 100}%` }}
-                    transition={{ duration: 0.5 }}
-                  />
-                </div>
-              </div>
+      {/* Progress Bar - now below header, no Welcome header */}
+      <div className="w-full bg-black/20 backdrop-blur-xl border-b border-white/10 pt-4 pb-2 sticky top-20 z-40">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="flex items-center justify-end">
+            <span className="text-sm text-white/60">Step {currentDomain + 1} of {domains.length}</span>
+            <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden ml-4">
+              <motion.div
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentDomain + 1) / domains.length) * 100}%` }}
+                transition={{ duration: 0.5 }}
+              />
             </div>
           </div>
         </div>
@@ -244,10 +264,12 @@ export function Onboarding() {
                       {suggestions.map((s, i) => (
                         <button
                           key={i}
-                          className="bg-white/10 hover:bg-purple-500/30 text-white/80 px-3 py-1 rounded-full text-xs transition-all"
+                          className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow hover:scale-105 hover:from-pink-500 hover:to-purple-600 transition-all border-2 border-transparent hover:border-white"
                           onClick={() => handleAddPreference(currentDomainData.key as keyof typeof preferences, s)}
+                          style={{ cursor: 'pointer' }}
                         >
-                          {s}
+                          <span className="mr-1">{s}</span>
+                          <span className="bg-white/20 text-white/80 px-2 py-0.5 rounded-full text-[10px] ml-1">Tap for more</span>
                         </button>
                       ))}
                     </div>
@@ -306,7 +328,8 @@ export function Onboarding() {
                   </button>
                   <button
                     onClick={handleNext}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105"
+                    disabled={preferences[currentDomainData.key as keyof typeof preferences].length < 1}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50"
                   >
                     <span>{currentDomain === domains.length - 1 ? 'Continue' : 'Next'}</span>
                     <ArrowRight className="w-4 h-4" />

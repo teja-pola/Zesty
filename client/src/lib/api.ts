@@ -206,10 +206,63 @@ export class ApiService {
   static async healthCheck(): Promise<boolean> {
     try {
       const response = await apiClient.get('/api/health');
-      return response.data.status === 'OK';
+      return response.status === 200;
     } catch (error) {
       console.error('Health check failed:', error);
       return false;
     }
   }
-} 
+
+  // New Zesty-specific methods
+  static async generateDiscomfortCards(userPreferences: any[], domains: string[] = ['movie', 'music', 'book', 'restaurant']) {
+    try {
+      const response = await apiClient.post('/api/zesty/generate-cards', {
+        userPreferences,
+        domains
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Generate cards failed:', error);
+      throw error;
+    }
+  }
+
+  static async generateOnboardingReport(preferences: any, userName: string) {
+    try {
+      const response = await apiClient.post('/api/zesty/onboarding-report', {
+        preferences,
+        userName
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Generate onboarding report failed:', error);
+      throw error;
+    }
+  }
+
+  static async findNemesis(userPreferences: any[], userId: string) {
+    try {
+      const response = await apiClient.post('/api/zesty/find-nemesis', {
+        userPreferences,
+        userId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Find nemesis failed:', error);
+      throw error;
+    }
+  }
+
+  static async generateGrowthReflection(completedChallenges: any[], userName: string) {
+    try {
+      const response = await apiClient.post('/api/zesty/growth-reflection', {
+        completedChallenges,
+        userName
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Generate growth reflection failed:', error);
+      throw error;
+    }
+  }
+}
